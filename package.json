@@ -1,0 +1,38 @@
+{
+  "name": "express-mesto-gha",
+  "version": "1.0.0",
+  "homepage": "https://alexandramaslennikova.github.io/express-mesto-gha/",
+  "description": "[![Tests](https://github.com/yandex-praktikum/express-mesto-gha/actions/workflows/tests-13-sprint.yml/badge.svg)](https://github.com/yandex-praktikum/express-mesto-gha/actions/workflows/tests-13-sprint.yml) [![Tests](https://github.com/yandex-praktikum/express-mesto-gha/actions/workflows/tests-14-sprint.yml/badge.svg)](https://github.com/yandex-praktikum/express-mesto-gha/actions/workflows/tests-14-sprint.yml)\r # Проект Mesto фронтенд + бэкенд",
+  "main": "index.js",
+  "scripts": {
+    "lint": "npx eslint .",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --mode production",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist",
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlexandraMaslennikova/express-mesto-gha.git"
+  },
+  "author": "Alexandra Maslennikova",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AlexandraMaslennikova/express-mesto-gha/issues"
+  },
+  "devDependencies": {
+    "eslint": "^8.10.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-react": "^7.29.3",
+    "nodemon": "^2.0.15",
+    "webpack": "^5.70.0"
+  },
+  "dependencies": {
+    "body-parser": "^1.19.2",
+    "express": "^4.17.3",
+    "mongoose": "^6.2.4"
+  }
+}
