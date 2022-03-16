@@ -37,7 +37,7 @@ const deleteCardById = (req, res) => {
       if (err.message === '404') {
         return res.status(404).send({ message: 'Карточка не найдена' });
       } if (err instanceof mongoose.CastError) {
-        return res.status(400).send({ message: 'Переданы некорректные данные!' });
+        return res.status(400).send({ message: 'Переданы некорректные данные' });
       }
       return res.status(500).send({ message: 'На сервере произошла ошибка' });
     });
@@ -53,10 +53,11 @@ const putCardLike = (req, res) => {
     throw new ErrorNotFound(`Нет карточки с id ${req.params.id}`);
   }).then((like) => res.status(200).send({ data: like }))
     .catch((err) => {
+      if (err.message === '404') {
+        return res.status(404).send({ message: 'Карточка с таким id не найдена' });
+      }
       if (err.name === 'CastError') {
-        return res.status(400).send({ message: 'Переданы некорректные данные карточки' });
-      } if (err.statusCode === 404) {
-        return res.status(404).send({ message: 'Передан несуществующий _id карточки' });
+        return res.status(400).send({ message: 'Переданы некорректные данные' });
       }
       return res.status(500).send({ message: 'На сервере произошла ошибка' });
     });
@@ -73,12 +74,13 @@ const deleteCardLike = (req, res) => {
   }).then((card) => {
     res.status(200).send({ data: card });
   }).catch((err) => {
-    if (err.statusCode === 400) {
-      return res.status(400).send({ message: err.errorMessage });
-    } if (err.statusCode === 404) {
-      return res.status(404).send({ message: err.errorMessage });
+    if (err.message === '404') {
+      return res.status(404).send({ message: 'Карточка c таким id не найдена' });
     }
-    return res.status(500).send({ message: err.errorMessage });
+    if (err instanceof mongoose.CastError) {
+      return res.status(400).send({ message: 'Переданы некорректные данные' });
+    }
+    return res.status(500).send({ message: 'На сервере произошла ошибка' });
   });
 };
 

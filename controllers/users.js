@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 const User = require('../models/user');
 const ErrorNotFound = require('../errors/ErrorNotFound');
 
