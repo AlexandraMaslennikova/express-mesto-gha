@@ -32,7 +32,9 @@ const deleteCardById = (req, res) => {
     .orFail(() => {
       throw new ErrorNotFound(`Нет карточки с id ${req.params.id}`);
     })
-    .then((card) => res.status(200).send(card))
+    .then((card) => {
+      res.status(200).send({ data: card });
+    })
     .catch((err) => {
       if (err.message === '404') {
         return res.status(404).send({ message: 'Карточка не найдена' });
@@ -75,9 +77,9 @@ const deleteCardLike = (req, res) => {
     res.status(200).send({ data: card });
   }).catch((err) => {
     if (err.message === '404') {
-      return res.status(404).send({ message: 'Карточка c таким id не найдена' });
+      return res.status(404).send({ message: 'Карточка с таки id не найдена' });
     }
-    if (err instanceof mongoose.CastError) {
+    if (err.name === 'CastError') {
       return res.status(400).send({ message: 'Переданы некорректные данные' });
     }
     return res.status(500).send({ message: 'На сервере произошла ошибка' });

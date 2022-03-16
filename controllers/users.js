@@ -53,12 +53,12 @@ const updateUserInfo = (req, res) => {
     .orFail(() => {
       throw new ErrorNotFound(`Пользователь с id ${req.params.id} не найден`);
     })
-    .then((user) => res.send({ data: user }))
+    .then((user) => res.status(200).send({ data: user }))
     .catch((err) => {
       if (err.message === '404') {
         return res.status(404).send({ message: 'Пользователь c таким id не найден' });
       }
-      if (err.name === 'ValidationError' || err.name === 'CastError') {
+      if (err.name === 'ValidationError') {
         return res.status(400).send({ message: 'Переданы некорректные данные' });
       }
       return res.status(500).send({ message: 'На сервере произошла ошибка' });
@@ -77,11 +77,11 @@ const updateAvatar = (req, res) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.statusCode === 400) {
-        return res.status(400).send({ message: err.errorMessage });
+        return res.status(400).send({ message: 'Переданы некорректные данные' });
       } if (err.statusCode === 404) {
-        return res.status(404).send({ message: err.errorMessage });
+        return res.status(404).send({ message: 'Пользователь с таким id не найден.' });
       }
-      return res.status(500).send({ message: err.errorMessage });
+      return res.status(500).send({ message: 'На сервере произошла ошибка' });
     });
 };
 
