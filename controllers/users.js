@@ -15,7 +15,7 @@ const getUsers = (req, res) => {
 const getUserById = (req, res) => {
   User.findById(req.params.id)
     .orFail(() => {
-      throw new ErrorNotFound(`Нет пользователя с id ${req.params.id}`);
+      throw new ErrorNotFound('404');
     })
     .then((user) => {
       res.status(200).send({ data: user });
@@ -23,7 +23,7 @@ const getUserById = (req, res) => {
     .catch((err) => {
       if (err.message === '404') {
         return res.status(404).send({ message: 'Пользователь с таким id не найден' });
-      } if (err.name === '400') {
+      } if (err.name === 'CastError') {
         return res.status(400).send({ message: 'Нет пользователя с таким id. Данные введены неверно' });
       }
       return res.status(500).send({ message: 'На сервере произошла ошибка' });
@@ -55,12 +55,13 @@ const updateUserInfo = (req, res) => {
     })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      if (err.statusCode === 400) {
-        return res.status(400).send({ message: err.errorMessage });
-      } if (err.statusCode === 404) {
-        return res.status(404).send({ message: err.errorMessage });
+      if (err.message === '404') {
+        return res.status(404).send({ message: 'Пользователь c таким id не найден' });
       }
-      return res.status(500).send({ message: err.errorMessage });
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
+        return res.status(400).send({ message: 'Переданы некорректные данные' });
+      }
+      return res.status(500).send({ message: 'На сервере произошла ошибка' });
     });
 };
 
