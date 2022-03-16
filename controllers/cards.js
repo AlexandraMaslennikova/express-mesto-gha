@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Card = require('../models/card');
 const ErrorNotFound = require('../errors/ErrorNotFound');
 
@@ -12,11 +13,10 @@ const getCards = (req, res) => {
 
 // создание карточки
 const createCard = (req, res) => {
-  console.log(req.user._id);
-
   const { name, link } = req.body;
+  const owner = req.user._id;
 
-  Card.create({ name, link })
+  Card.create({ name, link, owner })
     .then((card) => res.status(200).send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -35,9 +35,11 @@ const deleteCardById = (req, res) => {
     .then((card) => res.status(200).send(card))
     .catch((err) => {
       if (err.message === '404') {
-        return res.status(404).send({ message: 'Карточка не найдена!' });
+        return res.status(404).send({ message: 'Карточка не найдена' });
+      } if (err instanceof mongoose.CastError) {
+        return res.status(400).send({ message: 'Переданы некорректные данные!' });
       }
-      return res.status(500).send({ message: 'На сервере произошла ошибка!' });
+      return res.status(500).send({ message: 'На сервере произошла ошибка' });
     });
 };
 
@@ -69,7 +71,7 @@ const deleteCardLike = (req, res) => {
   ).orFail(() => {
     throw new ErrorNotFound(`Нет карточки с id ${req.params.id}`);
   }).then((card) => {
-    res.status(200).send(card);
+    res.status(200).send({ data: card });
   }).catch((err) => {
     if (err.statusCode === 400) {
       return res.status(400).send({ message: err.errorMessage });
