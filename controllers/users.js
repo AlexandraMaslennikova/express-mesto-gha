@@ -23,14 +23,12 @@ const getUserById = (req, res) => {
     });
 };
 
+// создание пользователя
 const createUser = (req, res) => {
   const { name, about, avatar } = req.body;
 
   User.create({ name, about, avatar })
-    .orFail(() => {
-      throw new ValidationError('Неверно введены данные пользователя');
-    })
-    .then((user) => res.send({ data: user }))
+    .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.statusCode === 400) {
         res.status(400).send({ message: err.errorMessage });

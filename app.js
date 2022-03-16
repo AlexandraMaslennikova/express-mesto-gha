@@ -32,6 +32,12 @@ app.use(express.json());
 app.use('/users', userRoutes);
 app.use('/cards', cardRoutes);
 
+app.use((req, res, next) => {
+  res.status(404).send("Sorry can't find that!");
+
+  next();
+});
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
 });
