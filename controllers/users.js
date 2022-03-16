@@ -1,6 +1,5 @@
 const User = require('../models/user');
 const ErrorNotFound = require('../errors/ErrorNotFound');
-const ValidationError = require('../errors/ValidationError');
 
 const getUsers = (req, res) => {
   User.find({})
@@ -10,16 +9,18 @@ const getUsers = (req, res) => {
     });
 };
 
+// получение данных пользователя
 const getUserById = (req, res) => {
-  User.findById(req.params.id)
+  User.findById(req.params._id)
     .orFail(() => {
-      throw new ErrorNotFound(`Нет пользователя с id ${req.params.id}`);
+      throw new ErrorNotFound(`Нет пользователя с id ${req.params._id}`);
     })
-    .then((user) => res.send(user))
+    .then((user) => res.send({ data: user }))
     .catch((err) => {
-      if (err.statusCode === 404) {
-        res.status(400).send({ message: err.errorMessage });
+      if (err.message === '404') {
+        return res.status(404).send({ message: 'Пользователь с данным id не найден' });
       }
+      return res.status(500).send({ message: 'На сервере произошла ошибка' });
     });
 };
 
@@ -30,11 +31,10 @@ const createUser = (req, res) => {
   User.create({ name, about, avatar })
     .then((user) => res.status(200).send(user))
     .catch((err) => {
-      if (err.statusCode === 400) {
-        res.status(400).send({ message: err.errorMessage });
-      } else {
-        res.status(500).send({ message: err.errorMessage });
+      if (err.name === 'ValidationError') {
+        return res.status(400).send({ message: 'Вы ввели неверные данные пользователя' });
       }
+      return res.status(500).send({ message: 'На сервере произошла ошибка' });
     });
 };
 

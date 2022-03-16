@@ -33,7 +33,7 @@ app.use('/users', userRoutes);
 app.use('/cards', cardRoutes);
 
 app.use((req, res, next) => {
-  res.status(404).send("Sorry can't find that!");
+  res.status(404).send({ message: 'К сожалению, такой страницы не существует' });
 
   next();
 });
