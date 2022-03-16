@@ -1,43 +1,47 @@
 const Card = require('../models/card');
 const ErrorNotFound = require('../errors/ErrorNotFound');
 
+// получение всех карточек
 const getCards = (req, res) => {
   Card.find({})
-    .then((cards) => res.send(cards))
+    .then((cards) => res.status(200).send(cards))
     .catch((err) => {
       console.log(err.stack || err);
     });
 };
 
+// создание карточки
 const createCard = (req, res) => {
   console.log(req.user._id);
 
   const { name, link } = req.body;
 
   Card.create({ name, link })
-    .then((cards) => res.send(cards))
+    .then((card) => res.status(200).send({ data: card }))
     .catch((err) => {
-      if (err.statusCode === 400) {
-        res.status(400).send({ message: err.errorMessage });
-      } else {
-        res.status(500).send({ message: err.errorMessage });
+      if (err.name === 'ValidationError') {
+        return res.status(400).send({ message: 'Данные введены неправильно' });
       }
+      return res.status(500).send({ message: 'На сервере произошла ошибка' });
     });
 };
 
+// удаление карточки
 const deleteCardById = (req, res) => {
   Card.findByIdAndRemove(req.params.id)
     .orFail(() => {
       throw new ErrorNotFound(`Нет карточки с id ${req.params.id}`);
     })
-    .then((card) => res.send(card))
+    .then((card) => res.status(200).send(card))
     .catch((err) => {
-      if (err.statusCode === 404) {
-        res.status(404).send({ message: err.errorMessage });
+      if (err.message === '404') {
+        return res.status(404).send({ message: 'Карточка не найдена!' });
       }
+      return res.status(500).send({ message: 'На сервере произошла ошибка!' });
     });
 };
 
+// лайк карточки
 const putCardLike = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
@@ -45,19 +49,18 @@ const putCardLike = (req, res) => {
     { new: true },
   ).orFail(() => {
     throw new ErrorNotFound(`Нет карточки с id ${req.params.id}`);
-  }).then((card) => {
-    res.send(card);
-  }).catch((err) => {
-    if (err.statusCode === 400) {
-      res.status(400).send({ message: err.errorMessage });
-    } else if (err.statusCode === 404) {
-      res.status(404).send({ message: err.errorMessage });
-    } else {
-      res.status(500).send({ message: err.errorMessage });
-    }
-  });
+  }).then((like) => res.status(200).send({ data: like }))
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return res.status(400).send({ message: 'Переданы некорректные данные карточки' });
+      } if (err.statusCode === 404) {
+        return res.status(404).send({ message: 'Передан несуществующий _id карточки' });
+      }
+      return res.status(500).send({ message: 'На сервере произошла ошибка' });
+    });
 };
 
+// удаление лайка
 const deleteCardLike = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
@@ -66,15 +69,14 @@ const deleteCardLike = (req, res) => {
   ).orFail(() => {
     throw new ErrorNotFound(`Нет карточки с id ${req.params.id}`);
   }).then((card) => {
-    res.send(card);
+    res.status(200).send(card);
   }).catch((err) => {
     if (err.statusCode === 400) {
-      res.status(400).send({ message: err.errorMessage });
-    } else if (err.statusCode === 404) {
-      res.status(404).send({ message: err.errorMessage });
-    } else {
-      res.status(500).send({ message: err.errorMessage });
+      return res.status(400).send({ message: err.errorMessage });
+    } if (err.statusCode === 404) {
+      return res.status(404).send({ message: err.errorMessage });
     }
+    return res.status(500).send({ message: err.errorMessage });
   });
 };
 
