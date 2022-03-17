@@ -47,11 +47,10 @@ const createUser = (req, res) => {
 // обновление информации пользователя
 const updateUserInfo = (req, res) => {
   const { name, about } = req.body;
-  const id = req.user._id;
 
-  User.findByIdAndUpdate(id, { name, about })
+  User.findByIdAndUpdate(req.user._id, { name, about }, { runValidators: true, new: true })
     .orFail(() => {
-      throw new ErrorNotFound(`Пользователь с id ${req.params.id} не найден`);
+      throw new ErrorNotFound(`Пользователь с id ${req.params._id} не найден`);
     })
     .then((user) => res.status(200).send({ data: user }))
     .catch((err) => {
@@ -70,7 +69,7 @@ const updateAvatar = (req, res) => {
   const { avatar } = req.body;
   const id = req.user._id;
 
-  User.findByIdAndUpdate(id, { avatar })
+  User.findByIdAndUpdate(id, { avatar }, { runValidators: true, new: true })
     .orFail(() => {
       throw new ErrorNotFound(`Пользователь с id ${req.params.id} не найден`);
     })
@@ -79,7 +78,7 @@ const updateAvatar = (req, res) => {
       if (err.statusCode === 400) {
         return res.status(400).send({ message: 'Переданы некорректные данные' });
       } if (err.statusCode === 404) {
-        return res.status(404).send({ message: 'Пользователь с таким id не найден.' });
+        return res.status(404).send({ message: 'Пользователь с таким id не найден' });
       }
       return res.status(500).send({ message: 'На сервере произошла ошибка' });
     });
