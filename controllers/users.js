@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 const User = require('../models/user');
 const ErrorNotFound = require('../errors/ErrorNotFound');
 
@@ -15,13 +14,13 @@ const getUsers = (req, res) => {
 const getUserById = (req, res) => {
   User.findById(req.params.id)
     .orFail(() => {
-      throw new ErrorNotFound(`Пользователь с id ${req.params._id} не найден`);
+      throw new ErrorNotFound(`Пользователь с id ${req.params.id} не найден`);
     })
     .then((user) => {
       res.status(200).send({ data: user });
     })
     .catch((err) => {
-      if (err.message === `Пользователь с id ${req.params._id} не найден`) {
+      if (err.statusCode === 400) {
         return res.status(404).send({ message: 'Пользователь с таким id не найден' });
       } if (err.name === 'CastError') {
         return res.status(400).send({ message: 'Нет пользователя с таким id. Данные введены неверно' });
@@ -50,11 +49,11 @@ const updateUserInfo = (req, res) => {
 
   User.findByIdAndUpdate(req.user._id, { name, about }, { runValidators: true, new: true })
     .orFail(() => {
-      throw new ErrorNotFound(`Пользователь с id ${req.params._id} не найден`);
+      throw new ErrorNotFound(`Пользователь с id ${req.user._id} не найден`);
     })
     .then((user) => res.status(200).send({ data: user }))
     .catch((err) => {
-      if (err.message === `Пользователь с id ${req.params._id} не найден`) {
+      if (err.statusCode === 400) {
         return res.status(404).send({ message: 'Пользователь c таким id не найден' });
       }
       if (err.name === 'ValidationError') {
