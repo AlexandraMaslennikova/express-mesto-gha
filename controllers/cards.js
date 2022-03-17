@@ -28,9 +28,9 @@ const createCard = (req, res) => {
 
 // удаление карточки
 const deleteCardById = (req, res) => {
-  Card.findByIdAndRemove(req.params.id)
+  Card.findByIdAndRemove(req.params.cardId)
     .orFail(() => {
-      throw new ErrorNotFound(`Нет карточки с id ${req.params.id}`);
+      throw new ErrorNotFound(`Нет карточки с id ${req.params.cardId}`);
     })
     .then((card) => {
       res.status(200).send({ data: card });
@@ -51,9 +51,10 @@ const putCardLike = (req, res) => {
     req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
-  ).orFail(() => {
-    throw new ErrorNotFound(`Нет карточки с id ${req.params.id}`);
-  }).then((like) => res.status(200).send({ data: like }))
+  )
+    .orFail(() => {
+      throw new ErrorNotFound(`Нет карточки с id ${req.params.cardId}`);
+    }).then((like) => res.status(200).send({ data: like }))
     .catch((err) => {
       if (err.message === '404') {
         return res.status(404).send({ message: 'Карточка с таким id не найдена' });
@@ -71,19 +72,22 @@ const deleteCardLike = (req, res) => {
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true },
-  ).orFail(() => {
-    throw new ErrorNotFound(`Нет карточки с id ${req.params.id}`);
-  }).then((card) => {
-    res.status(200).send({ data: card });
-  }).catch((err) => {
-    if (err.message === '404') {
-      return res.status(404).send({ message: 'Карточка с таки id не найдена' });
-    }
-    if (err.name === 'CastError') {
-      return res.status(400).send({ message: 'Переданы некорректные данные' });
-    }
-    return res.status(500).send({ message: 'На сервере произошла ошибка' });
-  });
+  )
+    .orFail(() => {
+      throw new ErrorNotFound(`Нет карточки с id ${req.params.cardId}`);
+    })
+    .then((card) => {
+      res.status(200).send({ data: card });
+    })
+    .catch((err) => {
+      if (err.message === '404') {
+        return res.status(404).send({ message: 'Карточка с таким id не найдена' });
+      }
+      if (err.name === 'CastError') {
+        return res.status(400).send({ message: 'Переданы некорректные данные' });
+      }
+      return res.status(500).send({ message: 'На сервере произошла ошибка' });
+    });
 };
 
 module.exports = {
