@@ -27,8 +27,11 @@ const getUserById = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new DataError('Неверные данные запроса'));
+      } else if (err.status === 404) {
+        next(new ErrorNotFound(`Карточка с указанным _id: ${req.params.id} не найдена.`));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -49,6 +52,7 @@ const createUser = (req, res, next) => {
       email,
       password: hash,
     })
+      .then((user) => User.findOne({ _id: user._id }))
       .then((user) => res.status(200).send(user))
       .catch((err) => {
         if (err.name === 'ValidationError') {
