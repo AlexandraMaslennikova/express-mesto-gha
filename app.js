@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+
 const { celebrate, Joi, errors } = require('celebrate');
 
 const bodyParser = require('body-parser');
