@@ -1,3 +1,4 @@
+/* eslint-disable no-shadow */
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -48,10 +49,10 @@ const createUser = (req, res, next) => {
       email,
       password: hash,
     })
-      .then(() => res.status(200).send({ message: `Пользователь ${email} успешно создан!` }))
+      .then((user) => res.status(200).send(user))
       .catch((err) => {
         if (err.name === 'ValidationError') {
-          next(new DataError('Неверные данные запроса'));
+          console.log(err.message);
         } else if (err.name === 'MongoError' && err.code === 11000) {
           next(new ConflictError('Пользователь с таким email уже существует'));
         } else {
