@@ -1,13 +1,14 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const { errors } = require('celebrate');
-require('dotenv').config();
-// const router = require('express').Router();
+const { celebrate, Joi, errors } = require('celebrate');
+
 const bodyParser = require('body-parser');
 const userRoutes = require('./routes/users');
 const cardRoutes = require('./routes/cards');
 const { createUser, login } = require('./controllers/users');
 const auth = require('./middlewares/auth');
+
+require('dotenv').config();
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -32,13 +33,29 @@ app.use((req, res, next) => {
   next();
 });
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(8),
+  }),
+}), login);
+
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(8),
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().pattern(/https?:\/\/(www\.)?[a-zA-Z\d\-.]{1,}\.[a-z]{1,6}([/a-z0-9\-._~:?#[\]@!$&'()*+,;=]*)/),
+  }),
+}), createUser);
 
 app.use(express.json());
 
-app.use('/users', auth, userRoutes);
-app.use('/cards', auth, cardRoutes);
+app.use(auth);
+
+app.use('/users', userRoutes);
+app.use('/cards', cardRoutes);
 
 app.use(errors());
 
