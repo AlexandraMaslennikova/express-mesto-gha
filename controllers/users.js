@@ -52,7 +52,7 @@ const createUser = (req, res, next) => {
       .then((user) => res.status(200).send(user))
       .catch((err) => {
         if (err.name === 'ValidationError') {
-          console.log(err.message);
+          next(new DataError('Неверный запрос или данные.'));
         } else if (err.name === 'MongoError' && err.code === 11000) {
           next(new ConflictError('Пользователь с таким email уже существует'));
         } else {
