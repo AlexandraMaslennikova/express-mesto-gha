@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Card = require('../models/card');
 const ErrorNotFound = require('../errors/ErrorNotFound');
+const ForbiddenError = require('../errors/ForbiddenError');
 
 // получение всех карточек
 const getCards = (req, res) => {
@@ -33,7 +34,11 @@ const deleteCardById = (req, res) => {
       throw new ErrorNotFound(`Нет карточки с id ${req.params.cardId}`);
     })
     .then((card) => {
-      res.status(200).send({ data: card });
+      if (req.user._id !== card.owner.toString()) {
+        throw new ForbiddenError('У вас нет права доступа к этому действию');
+      } else {
+        res.status(200).send({ data: card });
+      }
     })
     .catch((err) => {
       if (err.statusCode === 404) {
