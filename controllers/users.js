@@ -3,20 +3,19 @@ const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
 const ErrorNotFound = require('../errors/ErrorNotFound');
-// const ValidationError = require('../errors/ValidationError');
 const ConflictError = require('../errors/ConflictError');
+const DataError = require('../errors/DataError');
+const AuthError = require('../errors/AuthError');
 
 // получение всех пользователей
-const getUsers = (req, res) => {
+const getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.status(200).send(users))
-    .catch((err) => {
-      console.log(err.stack || err);
-    });
+    .catch(next);
 };
 
 // получение данных пользователя
-const getUserById = (req, res) => {
+const getUserById = (req, res, next) => {
   User.findById(req.params.id)
     .orFail(() => {
       throw new ErrorNotFound(`Пользователь с id ${req.params.id} не найден`);
@@ -25,22 +24,15 @@ const getUserById = (req, res) => {
       res.status(200).send({ data: user });
     })
     .catch((err) => {
-      if (err.statusCode === 404) {
-        return res
-          .status(404)
-          .send({ message: 'Пользователь с таким id не найден' });
-      }
       if (err.name === 'CastError') {
-        return res.status(400).send({
-          message: 'Нет пользователя с таким id. Данные введены неверно',
-        });
+        next(new DataError('Неверные данные запроса'));
       }
-      return res.status(500).send({ message: 'На сервере произошла ошибка' });
+      next(err);
     });
 };
 
 // создание пользователя
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
@@ -59,18 +51,17 @@ const createUser = (req, res) => {
       .then(() => res.status(200).send({ message: `Пользователь ${email} успешно создан!` }))
       .catch((err) => {
         if (err.name === 'ValidationError') {
-          return res
-            .status(400)
-            .send({ message: 'Вы ввели неверные данные пользователя' });
+          next(new DataError('Неверные данные запроса'));
+        } else if (err.name === 'MongoError' && err.code === 11000) {
+          next(new ConflictError('Пользователь с таким email уже существует'));
+        } else {
+          next(err);
         }
-        return res
-          .status(500)
-          .send({ message: 'На сервере произошла ошибка' });
       }));
   });
 };
 
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
 
   User.findOne({ email })
@@ -95,13 +86,11 @@ const login = (req, res) => {
       });
       res.status(201).send({ token });
     })
-    .catch((err) => {
-      res.status(401).send({ message: err.message });
-    });
+    .catch(() => next(new AuthError('Неверный логин или пароль')));
 };
 
 // обновление информации пользователя
-const updateUserInfo = (req, res) => {
+const updateUserInfo = (req, res, next) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(
@@ -114,22 +103,16 @@ const updateUserInfo = (req, res) => {
     })
     .then((user) => res.status(200).send({ data: user }))
     .catch((err) => {
-      if (err.statusCode === 404) {
-        return res
-          .status(404)
-          .send({ message: 'Пользователь c таким id не найден' });
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
+        next(new DataError('Неверный запрос или данные.'));
+      } else {
+        next(err);
       }
-      if (err.name === 'ValidationError') {
-        return res
-          .status(400)
-          .send({ message: 'Переданы некорректные данные' });
-      }
-      return res.status(500).send({ message: 'На сервере произошла ошибка' });
     });
 };
 
 // обновление аватара
-const updateAvatar = (req, res) => {
+const updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   const id = req.user._id;
 
@@ -139,17 +122,11 @@ const updateAvatar = (req, res) => {
     })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      if (err.statusCode === 400) {
-        return res
-          .status(400)
-          .send({ message: 'Переданы некорректные данные' });
+      if (err.name === 'CastError' || err.name === 'ValidationError') {
+        next(new DataError('Данные внесены некорректно или запрос неверный.'));
+      } else {
+        next(err);
       }
-      if (err.statusCode === 404) {
-        return res
-          .status(404)
-          .send({ message: 'Пользователь с таким id не найден' });
-      }
-      return res.status(500).send({ message: 'На сервере произошла ошибка' });
     });
 };
 

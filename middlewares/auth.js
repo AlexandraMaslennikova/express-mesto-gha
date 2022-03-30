@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 const jwt = require('jsonwebtoken');
 
 const handleAuthError = (res) => {
@@ -8,7 +9,7 @@ const handleAuthError = (res) => {
 
 const extractBearerToken = (header) => header.replace('Bearer ', '');
 
-module.exports = (req, res, next) => {
+module.exports.auth = (req, res, next) => {
   const { authorization } = req.headers;
 
   if (!authorization || !authorization.startsWith('Bearer ')) {

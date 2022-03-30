@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const { errors } = require('celebrate');
 require('dotenv').config();
 // const router = require('express').Router();
 const bodyParser = require('body-parser');
@@ -38,6 +39,17 @@ app.use(express.json());
 
 app.use('/users', auth, userRoutes);
 app.use('/cards', auth, cardRoutes);
+
+app.use(errors());
+
+// здесь обрабатываем все ошибки
+app.use((err, req, res, next) => {
+  const { statusCode = 500, message } = err;
+  res.status(statusCode).send({
+    message: statusCode === 500 ? 'Произошла ошибка сервера' : message,
+  });
+  next();
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
