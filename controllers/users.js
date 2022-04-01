@@ -26,9 +26,7 @@ const getUserById = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new DataError('Неверные данные запроса'));
-      } else if (err.status === 404) {
-        next(new ErrorNotFound(`Карточка с указанным _id: ${req.params.id} не найдена.`));
+        next(new DataError('Неверный запрос или данные'));
       } else {
         next(err);
       }
@@ -73,25 +71,22 @@ const login = (req, res, next) => {
     .select('+password')
     .then((user) => {
       if (!user) {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
+        throw new AuthError('Пользователь с таки email не загеристрирован');
       }
-
-      return bcrypt.compare(password, user.password);
+      return bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            // хеши не совпали — отклоняем промис
+            throw new AuthError('Неверный email или пароль');
+          }
+          // аутентификация успешна
+          const token = jwt.sign({ _id: user._id }, 'login-secret-key', {
+            expiresIn: '7d',
+          });
+          res.status(201).send({ token });
+        });
     })
-    // eslint-disable-next-line consistent-return
-    .then((matched) => {
-      if (!matched) {
-        // хеши не совпали — отклоняем промис
-        return Promise.reject(new Error('Неправильные почта или пароль'));
-      }
-
-      // аутентификация успешна
-      const token = jwt.sign({ _id: req.user._id }, 'secret-key', {
-        expiresIn: '7d',
-      });
-      res.status(201).send({ token });
-    })
-    .catch(() => next(new AuthError('Неверный логин или пароль')));
+    .catch(next);
 };
 
 // обновление информации пользователя
