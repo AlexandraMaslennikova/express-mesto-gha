@@ -55,7 +55,7 @@ const createUser = (req, res, next) => {
           password: hash,
         }))
         .then((user) => User.findOne({ _id: user._id }))
-        .then((user) => res.status(200).send(user))
+        .then((user) => res.status(200).send(user));
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
