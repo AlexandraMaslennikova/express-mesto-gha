@@ -17,9 +17,9 @@ const getUsers = (req, res, next) => {
 
 // получение данных пользователя
 const getUserById = (req, res, next) => {
-  User.findById(req.params.id)
+  User.findById(req.params._id)
     .orFail(() => {
-      throw new ErrorNotFound(`Пользователь с id ${req.params.id} не найден`);
+      throw new ErrorNotFound(`Пользователь с id ${req.params._id} не найден`);
     })
     .then((user) => {
       res.status(200).send({ data: user });
@@ -118,12 +118,12 @@ const updateAvatar = (req, res, next) => {
 
   User.findByIdAndUpdate(id, { avatar }, { runValidators: true, new: true })
     .orFail(() => {
-      throw new ErrorNotFound(`Пользователь с id ${req.params.id} не найден`);
+      throw new ErrorNotFound(`Пользователь с id ${req.params._id} не найден`);
     })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError' || err.name === 'ValidationError') {
-        next(new DataError('Данные внесены некорректно или запрос неверный.'));
+        next(new DataError('Данные внесены некорректно или запрос неверный'));
       } else {
         next(err);
       }
