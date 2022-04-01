@@ -83,7 +83,7 @@ const login = (req, res, next) => {
           const token = jwt.sign({ _id: user._id }, 'login-secret-key', {
             expiresIn: '7d',
           });
-          res.status(201).send({ token });
+          res.status(200).send({ token });
         });
     })
     .catch(next);
