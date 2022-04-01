@@ -26,14 +26,6 @@ app.use((req, res, next) => {
   next();
 });
 
-/* app.use((req, res, next) => {
-  req.user = {
-    _id: '6231f0babe6853d24960bad7',
-  };
-
-  next();
-}); */
-
 app.post('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
@@ -68,9 +60,11 @@ app.use((req, res, next) => {
 
 // здесь обрабатываем все ошибки
 app.use((err, req, res, next) => {
-  const { statusCode = 500, message } = err;
-  res.status(statusCode).send({
-    message: statusCode === 500 ? 'Произошла ошибка сервера' : message,
+  console.log(err.stack || err);
+  const status = err.statusCode || 500;
+  res.status(status).send({
+    err,
+    message: err.message,
   });
   next();
 });

@@ -41,29 +41,29 @@ const createUser = (req, res, next) => {
     name, about, avatar, email, password,
   } = req.body;
 
-  User.findOne({ email }).then((user) => {
-    if (user) {
-      throw new ConflictError('Пользователь с таким email уже существует');
-    }
-    bcrypt.hash(password, 10).then((hash) => User.create({
-      name,
-      about,
-      avatar,
-      email,
-      password: hash,
+  User.findOne({ email })
+    .then((user) => {
+      if (user) {
+        throw new ConflictError('Пользователь с таким email уже существует');
+      }
+      return bcrypt.hash(password, 10)
+        .then((hash) => User.create({
+          name,
+          about,
+          avatar,
+          email,
+          password: hash,
+        }))
+        .then((user) => User.findOne({ _id: user._id }))
+        .then((user) => res.status(200).send(user))
     })
-      .then((user) => User.findOne({ _id: user._id }))
-      .then((user) => res.status(200).send(user))
-      .catch((err) => {
-        if (err.name === 'ValidationError') {
-          next(new DataError('Неверный запрос или данные.'));
-        } else if (err.name === 'MongoError' && err.code === 11000) {
-          next(new ConflictError('Пользователь с таким email уже существует'));
-        } else {
-          next(err);
-        }
-      }));
-  });
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new DataError('Неверный запрос или данные'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 const login = (req, res, next) => {
