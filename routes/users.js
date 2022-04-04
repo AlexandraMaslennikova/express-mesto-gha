@@ -8,21 +8,20 @@ const {
 } = require('../controllers/users');
 
 router.get('/', getUsers);
+router.get('/users/me', getUserById);
 
 router.get('/:id', celebrate({
   params: Joi.object().keys({
-    _id: Joi.string().length(24).hex(),
+    id: Joi.string().length(24).hex(),
   }),
 }), getUserById);
 
-router.get('/users/me', celebrate({
+router.patch('/me', celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30).required(),
     about: Joi.string().min(2).max(30).required(),
   }),
-}), getUserById);
-
-router.patch('/me', updateUserInfo);
+}), updateUserInfo);
 
 router.patch('/me/avatar', celebrate({
   body: Joi.object().keys({

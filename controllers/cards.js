@@ -19,7 +19,7 @@ const createCard = (req, res, next) => {
     .then((card) => res.status(200).send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Данные введены неправильно' });
+        next(DataError('Данные карточки не валидны'));
       }
       next(err);
     });
@@ -27,16 +27,16 @@ const createCard = (req, res, next) => {
 
 // удаление карточки
 const deleteCardById = (req, res, next) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  Card.findById(req.params.cardId)
     .orFail(() => {
       throw new ErrorNotFound(`Нет карточки с id ${req.params.cardId}`);
     })
     .then((card) => {
-      if (req.user._id !== card.owner.toString()) {
-        throw new ForbiddenError('У вас нет права доступа к этому действию');
-      } else {
-        res.status(200).send({ data: card });
+      if (!card.owner.equals(req.user._id)) {
+        return next(new ForbiddenError('Нельзя удалить чужую карточку'));
       }
+      return card.remove()
+        .then(() => res.status(200).send({ data: card, message: 'Карточка удалена' }));
     })
     .catch(next);
 };

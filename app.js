@@ -7,6 +7,8 @@ const bodyParser = require('body-parser');
 const userRoutes = require('./routes/users');
 const cardRoutes = require('./routes/cards');
 const { createUser, login } = require('./controllers/users');
+const ErrorNotFound = require('./errors/ErrorNotFound');
+
 const auth = require('./middlewares/auth');
 
 require('dotenv').config();
@@ -29,14 +31,14 @@ app.use((req, res, next) => {
 app.post('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
-    password: Joi.string().required().min(8),
+    password: Joi.string().required(),
   }),
 }), login);
 
 app.post('/signup', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
-    password: Joi.string().required().min(8),
+    password: Joi.string().required(),
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
     avatar: Joi.string().pattern(/https?:\/\/(www\.)?[a-zA-Z\d\-.]{1,}\.[a-z]{1,6}([/a-z0-9\-._~:?#[\]@!$&'()*+,;=]*)/),
@@ -52,10 +54,9 @@ app.use('/cards', cardRoutes);
 
 app.use(errors());
 
+// обработка неправильного
 app.use((req, res, next) => {
-  res.status(404).send({ message: 'Страница не найдена' });
-
-  next();
+  next(new ErrorNotFound('Данный путь не найден'));
 });
 
 // здесь обрабатываем все ошибки
