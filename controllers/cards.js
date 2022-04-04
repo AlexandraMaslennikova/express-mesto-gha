@@ -19,7 +19,7 @@ const createCard = (req, res, next) => {
     .then((card) => res.status(200).send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new DataError('Данные карточки не валидны'));
+        next(new DataError('Данные карточки невалидны'));
       }
       next(err);
     });
