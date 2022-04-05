@@ -15,6 +15,23 @@ const getUsers = (req, res, next) => {
     .catch(next);
 };
 
+const getUserMe = (req, res, next) => {
+  User.findById(req.user._id)
+    .orFail(() => {
+      throw new ErrorNotFound('Пользователь не найден');
+    })
+    .then((user) => {
+      res.status(200).send({ data: user });
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new DataError('Неверный запрос или данные'));
+      } else {
+        next(err);
+      }
+    });
+};
+
 // получение данных пользователя
 const getUserById = (req, res, next) => {
   User.findById(req.params.id)
@@ -132,6 +149,7 @@ const updateAvatar = (req, res, next) => {
 
 module.exports = {
   getUsers,
+  getUserMe,
   getUserById,
   createUser,
   login,
